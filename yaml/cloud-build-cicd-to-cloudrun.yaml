@@ -1,0 +1,40 @@
+steps:
+  - name: curlimages/curl
+    args:
+      - '-X'
+      - POST
+      - '-H'
+      - 'Content-type: application/json'
+      - '--data'
+      - '{"text": "CLOUD BUILD : $_SERVICE_NAME"}'
+      - >-
+        $_SLACK_URI
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA'
+      - .
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA'
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    args:
+      - run
+      - deploy
+      - $_SERVICE_NAME
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA'
+      - '--region'
+      - $_DEPLOY_REGION
+      - '--platform'
+      - managed
+    entrypoint: gcloud
+images:
+  - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA'
+
+
+# VARIABLES
+# _DEPLOY_REGION=asia-northeast3
+# _SERVICE_NAME=servicename
