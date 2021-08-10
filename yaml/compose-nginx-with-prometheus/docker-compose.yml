@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+  nginx:
+    container_name: nginx
+    image: nginxtest:latest
+    ports:
+      - 80:80
+  
+  nginx-prometheus-exporter:
+    container_name: nginx-prometheus-exporter
+    image: nginx/nginx-prometheus-exporter:latest
+    ports:
+      - 9113:9113
+    command: -nginx.scrape-uri http://nginx/metrics
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/log:/prometheus
+    ports:
+      - 9090:9090
